@@ -1,33 +1,57 @@
 // Extended search function handling products + brands
 async function fetchDealsForProductOrBrand(searchQuery) {
+  // 1. Guard check: return empty array if query is invalid or empty
+  if (!searchQuery || typeof searchQuery !== 'string') {
+    return [];
+  }
+
   const cleanQuery = searchQuery.trim().toLowerCase();
-  
-  // 1. If an API key is connected, send the exact product query to your backend provider
-  if (COUPON_API_KEY) {
+  if (!cleanQuery) return [];
+
+  // 2. If an API key is connected, attempt backend fetch
+  if (typeof COUPON_API_KEY !== 'undefined' && COUPON_API_KEY) {
     try {
-      const res = await fetch(`${COUPON_API_ENDPOINT}?query=${encodeURIComponent(cleanQuery)}`, {
+      const endpoint = typeof COUPON_API_ENDPOINT !== 'undefined' ? COUPON_API_ENDPOINT : '';
+      const res = await fetch(`${endpoint}?query=${encodeURIComponent(cleanQuery)}`, {
         headers: { 'Authorization': `Bearer ${COUPON_API_KEY}` }
       });
+      
       if (res.ok) {
         const data = await res.json();
-        return data.coupons; // Live product-level deals
+        if (Array.isArray(data.coupons)) {
+          return data.coupons; // Live product-level deals
+        }
+      } else {
+        console.warn(`API error status: ${res.status}`);
       }
     } catch (err) {
-      console.warn("API request failed:", err);
+      console.warn("API request failed, falling back to local deals:", err);
     }
   }
 
-  // 2. Client-side matching logic (Filtering local deals by product keywords)
+  // 3. Client-side matching logic (Safe local deal filtering)
   const results = [];
   
+  // Guard against missing localDeals object
+  if (typeof localDeals !== 'object' || !localDeals) {
+    console.warn("localDeals variable is missing or invalid.");
+    return results;
+  }
+
   Object.keys(localDeals).forEach(brand => {
-    // Check if the query matches the brand name OR specific product descriptions
-    localDeals[brand].forEach(deal => {
+    const dealsList = localDeals[brand];
+    if (!Array.isArray(dealsList)) return;
+
+    dealsList.forEach(deal => {
+      if (!deal) return;
+
       const matchesBrand = brand.toLowerCase().includes(cleanQuery);
-      const matchesProduct = deal.desc.toLowerCase().includes(cleanQuery) || 
-                             deal.title.toLowerCase().includes(cleanQuery);
       
-      if (matchesBrand || matchesProduct) {
+      // Using optional chaining (?.) and fallback string ('') to prevent crashing on missing properties
+      const matchesDesc = (deal.desc || '').toLowerCase().includes(cleanQuery);
+      const matchesTitle = (deal.title || '').toLowerCase().includes(cleanQuery);
+
+      if (matchesBrand || matchesDesc || matchesTitle) {
         results.push({ ...deal, store: brand });
       }
     });
