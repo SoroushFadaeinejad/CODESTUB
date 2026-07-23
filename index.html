@@ -180,7 +180,7 @@
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-elevated);
-    max-height: 320px;
+    max-height: 360px;
     overflow-y: auto;
     z-index: 50;
     display: none;
@@ -470,44 +470,119 @@
 </div>
 
 <script>
-// ---------- Database ----------
+// ---------- Major US Companies & Everyday Brands Database ----------
 const brandDatabase = [
-  { name: "Amazon", cat: "Shopping", synonyms: ["amzon", "amz", "prime"] },
-  { name: "Walmart", cat: "Shopping", synonyms: ["wal-mart", "walmart+"] },
-  { name: "Target", cat: "Shopping", synonyms: ["trget", "tgt"] },
+  // Major Retail & Everyday Shopping
+  { name: "Amazon", cat: "Shopping", synonyms: ["amzon", "amz", "prime", "amazon prime"] },
+  { name: "Walmart", cat: "Shopping", synonyms: ["walmart", "walmart+", "wal-mart"] },
+  { name: "Target", cat: "Shopping", synonyms: ["target", "tgt", "trget"] },
   { name: "eBay", cat: "Shopping", synonyms: ["ebay"] },
   { name: "Best Buy", cat: "Shopping", synonyms: ["bestbuy", "bb"] },
   { name: "Costco", cat: "Shopping", synonyms: ["costco wholesale"] },
+  { name: "Sam's Club", cat: "Shopping", synonyms: ["sams club", "sams"] },
   { name: "Etsy", cat: "Shopping", synonyms: ["etsy"] },
+  { name: "Home Depot", cat: "Home Improvement", synonyms: ["homedepot", "the home depot"] },
+  { name: "Lowe's", cat: "Home Improvement", synonyms: ["lowes"] },
+  { name: "IKEA", cat: "Furniture", synonyms: ["ikea"] },
+  { name: "Wayfair", cat: "Furniture", synonyms: ["wayfair"] },
+  { name: "Overstock / Bed Bath & Beyond", cat: "Home Goods", synonyms: ["bed bath", "overstock"] },
+  { name: "Kohl's", cat: "Department Store", synonyms: ["kohls"] },
+  { name: "Macy's", cat: "Department Store", synonyms: ["macys"] },
+  { name: "Nordstrom", cat: "Department Store", synonyms: ["nordstroms", "nordstrom rack"] },
+  { name: "JCPenney", cat: "Department Store", synonyms: ["jcpenney", "jcp"] },
+
+  // Food, Grocery & Delivery
   { name: "DoorDash", cat: "Food & Delivery", synonyms: ["doordash", "dd", "door dash", "doordash promo"] },
   { name: "Uber Eats", cat: "Food & Delivery", synonyms: ["ubereats", "uber food"] },
-  { name: "Grubhub", cat: "Food & Delivery", synonyms: ["grub hub"] },
-  { name: "Instacart", cat: "Food & Delivery", synonyms: ["insta cart"] },
-  { name: "HelloFresh", cat: "Food & Delivery", synonyms: ["hello fresh"] },
+  { name: "Grubhub", cat: "Food & Delivery", synonyms: ["grubhub", "grub hub"] },
+  { name: "Instacart", cat: "Grocery Delivery", synonyms: ["instacart", "insta cart"] },
+  { name: "Shipt", cat: "Grocery Delivery", synonyms: ["shipt"] },
+  { name: "HelloFresh", cat: "Meal Kits", synonyms: ["hellofresh", "hello fresh"] },
+  { name: "Factor Meals", cat: "Meal Kits", synonyms: ["factor", "factor75"] },
+  { name: "Blue Apron", cat: "Meal Kits", synonyms: ["blue apron"] },
+  { name: "Gopuff", cat: "Convenience Delivery", synonyms: ["gopuff", "go puff"] },
+  { name: "Dominos", cat: "Food & Pizza", synonyms: ["dominos pizza"] },
+  { name: "Papa Johns", cat: "Food & Pizza", synonyms: ["papa johns"] },
+  { name: "Chipotle", cat: "Restaurants", synonyms: ["chipotle mexican grill"] },
+  { name: "Starbucks", cat: "Coffee", synonyms: ["starbucks coffee", "sbux"] },
+
+  // Transportation & Rideshare
   { name: "Uber", cat: "Transportation", synonyms: ["uber rides", "upr"] },
-  { name: "Lyft", cat: "Transportation", synonyms: ["lifp", "lyft ride"] },
+  { name: "Lyft", cat: "Transportation", synonyms: ["lyft ride", "lifp"] },
   { name: "Waymo", cat: "Transportation", synonyms: ["waymo taxi"] },
+  { name: "Zipcar", cat: "Car Rental", synonyms: ["zip car"] },
+  { name: "Hertz", cat: "Car Rental", synonyms: ["hertz rental"] },
+  { name: "Enterprise", cat: "Car Rental", synonyms: ["enterprise rent-a-car"] },
+
+  // Travel, Hotels & Airlines
   { name: "Airbnb", cat: "Travel", synonyms: ["air bnb", "air b&b"] },
+  { name: "Vrbo", cat: "Travel", synonyms: ["vrbo"] },
   { name: "Expedia", cat: "Travel", synonyms: ["expedia"] },
   { name: "Hotels.com", cat: "Travel", synonyms: ["hotels"] },
   { name: "Booking.com", cat: "Travel", synonyms: ["booking"] },
-  { name: "Southwest Airlines", cat: "Travel", synonyms: ["southwest", "swa"] },
-  { name: "Delta Air Lines", cat: "Travel", synonyms: ["delta"] },
-  { name: "Nike", cat: "Clothing", synonyms: ["nike shoes"] },
-  { name: "Adidas", cat: "Clothing", synonyms: ["addidas"] },
-  { name: "Nordstrom", cat: "Clothing", synonyms: ["nordstroms"] },
-  { name: "Macy's", cat: "Clothing", synonyms: ["macys"] },
-  { name: "H&M", cat: "Clothing", synonyms: ["hm", "h and m"] },
-  { name: "Zara", cat: "Clothing", synonyms: ["zara"] },
+  { name: "Priceline", cat: "Travel", synonyms: ["priceline"] },
+  { name: "Kayak", cat: "Travel", synonyms: ["kayak"] },
+  { name: "Southwest Airlines", cat: "Airlines", synonyms: ["southwest", "swa"] },
+  { name: "Delta Air Lines", cat: "Airlines", synonyms: ["delta"] },
+  { name: "American Airlines", cat: "Airlines", synonyms: ["aa", "american airlines"] },
+  { name: "United Airlines", cat: "Airlines", synonyms: ["united"] },
+  { name: "Alaska Airlines", cat: "Airlines", synonyms: ["alaska air"] },
+  { name: "Marriott", cat: "Hotels", synonyms: ["marriott bonvoy"] },
+  { name: "Hilton", cat: "Hotels", synonyms: ["hilton honors"] },
+
+  // Clothing, Shoes & Athletic
+  { name: "Nike", cat: "Clothing & Shoes", synonyms: ["nike shoes"] },
+  { name: "Adidas", cat: "Clothing & Shoes", synonyms: ["addidas"] },
+  { name: "Lululemon", cat: "Activewear", synonyms: ["lulu", "lululemon athletica"] },
+  { name: "Under Armour", cat: "Activewear", synonyms: ["underarmour", "ua"] },
+  { name: "Zara", cat: "Apparel", synonyms: ["zara"] },
+  { name: "H&M", cat: "Apparel", synonyms: ["hm", "h and m"] },
+  { name: "Old Navy", cat: "Apparel", synonyms: ["old navy"] },
+  { name: "GAP", cat: "Apparel", synonyms: ["the gap"] },
+  { name: "Banana Republic", cat: "Apparel", synonyms: ["banana republic"] },
+  { name: "ASOS", cat: "Apparel", synonyms: ["asos"] },
+  { name: "REI", cat: "Outdoor Gear", synonyms: ["rei co-op"] },
+  { name: "Dick's Sporting Goods", cat: "Sporting Goods", synonyms: ["dicks sporting goods"] },
+
+  // Tech, Software & Mobile
   { name: "Apple", cat: "Electronics", synonyms: ["iphone", "macbook", "apple store"] },
   { name: "Samsung", cat: "Electronics", synonyms: ["galaxy"] },
-  { name: "Netflix", cat: "Entertainment", synonyms: ["netflx", "net flix"] },
-  { name: "Spotify", cat: "Entertainment", synonyms: ["spotfy", "music"] },
-  { name: "Hulu", cat: "Entertainment", synonyms: ["hulu stream"] },
+  { name: "Dell", cat: "Computers", synonyms: ["dell technologies"] },
+  { name: "Lenovo", cat: "Computers", synonyms: ["lenovo"] },
+  { name: "HP", cat: "Computers", synonyms: ["hewlett packard"] },
+  { name: "AT&T", cat: "Mobile Telecom", synonyms: ["att", "at and t"] },
+  { name: "Verizon", cat: "Mobile Telecom", synonyms: ["verizon wireless"] },
+  { name: "T-Mobile", cat: "Mobile Telecom", synonyms: ["tmobile", "t mobile"] },
+  { name: "Mint Mobile", cat: "Mobile Telecom", synonyms: ["mint"] },
+
+  // Streaming, Entertainment & Gaming
+  { name: "Netflix", cat: "Streaming", synonyms: ["netflx", "net flix"] },
+  { name: "Spotify", cat: "Music", synonyms: ["spotfy", "music"] },
+  { name: "Hulu", cat: "Streaming", synonyms: ["hulu"] },
+  { name: "Disney+", cat: "Streaming", synonyms: ["disney plus", "disney"] },
+  { name: "Max (HBO)", cat: "Streaming", synonyms: ["hbo max", "hbo"] },
+  { name: "YouTube Premium", cat: "Streaming", synonyms: ["youtube red"] },
+  { name: "Paramount+", cat: "Streaming", synonyms: ["paramount plus"] },
+  { name: "PlayStation Store", cat: "Gaming", synonyms: ["ps store", "psn"] },
+  { name: "Xbox", cat: "Gaming", synonyms: ["xbox game pass", "microsoft xbox"] },
+
+  // Beauty, Personal Care & Pharmacy
   { name: "Sephora", cat: "Beauty", synonyms: ["sephora"] },
-  { name: "Ulta Beauty", cat: "Beauty", synonyms: ["ulta"] }
+  { name: "Ulta Beauty", cat: "Beauty", synonyms: ["ulta"] },
+  { name: "CVS Pharmacy", cat: "Pharmacy & Household", synonyms: ["cvs"] },
+  { name: "Walgreens", cat: "Pharmacy & Household", synonyms: ["walgreens"] },
+  { name: "Chewy", cat: "Pet Supplies", synonyms: ["chewy pet"] },
+  { name: "Petco", cat: "Pet Supplies", synonyms: ["petco"] },
+  { name: "PetSmart", cat: "Pet Supplies", synonyms: ["petsmart"] },
+
+  // Fitness & Wellness
+  { name: "Peloton", cat: "Fitness", synonyms: ["peloton interactive"] },
+  { name: "Planet Fitness", cat: "Gyms", synonyms: ["pf", "planet fitness"] },
+  { name: "Equinox", cat: "Gyms", synonyms: ["equinox"] },
+  { name: "ClassPass", cat: "Fitness Subscriptions", synonyms: ["class pass"] }
 ];
 
+// Expanded Curated Deals Database
 const activeDeals = {
   "Amazon": [
     { title: "20% OFF", code: "SAVE20AMZ", desc: "Valid on everyday household essentials & grocery orders over $35.", forNew: false, verified: "Verified today", expires: "Active" },
@@ -567,7 +642,7 @@ function getDealsForBrand(brandName) {
   ];
 }
 
-// ---------- DOM & Logic ----------
+// ---------- DOM & Interactive Logic ----------
 const input = document.getElementById('search-input');
 const suggestionsBox = document.getElementById('suggestions-box');
 const mainContent = document.getElementById('main-content');
@@ -582,7 +657,7 @@ function searchBrands(query) {
   return brandDatabase.filter(b => {
     if (b.name.toLowerCase().includes(q)) return true;
     return b.synonyms.some(s => s.toLowerCase().includes(q));
-  }).slice(0, 6);
+  }).slice(0, 8);
 }
 
 function handleInput() {
