@@ -1,33 +1,37 @@
-// Example logic used inside a browser extension content script
-async function testCodesOnCheckout(codesToTest, inputSelector, applyBtnSelector) {
-  let bestCode = null;
-  let maxSavings = 0;
-
-  for (const code of codesToTest) {
-    const input = document.querySelector(inputSelector);
-    const applyBtn = document.querySelector(applyBtnSelector);
-
-    if (!input || !applyBtn) continue;
-
-    // 1. Inject code into checkout input
-    input.value = code;
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-
-    // 2. Trigger the apply button
-    applyBtn.click();
-
-    // 3. Wait for merchant server response
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    // 4. Read updated order subtotal from the page
-    const currentSubtotal = parseSubtotalFromDOM(); 
-    const savings = calculateSavings(currentSubtotal);
-
-    if (savings > maxSavings) {
-      maxSavings = savings;
-      bestCode = code;
+// Extended search function handling products + brands
+async function fetchDealsForProductOrBrand(searchQuery) {
+  const cleanQuery = searchQuery.trim().toLowerCase();
+  
+  // 1. If an API key is connected, send the exact product query to your backend provider
+  if (COUPON_API_KEY) {
+    try {
+      const res = await fetch(`${COUPON_API_ENDPOINT}?query=${encodeURIComponent(cleanQuery)}`, {
+        headers: { 'Authorization': `Bearer ${COUPON_API_KEY}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data.coupons; // Live product-level deals
+      }
+    } catch (err) {
+      console.warn("API request failed:", err);
     }
   }
 
-  return { bestCode, maxSavings };
+  // 2. Client-side matching logic (Filtering local deals by product keywords)
+  const results = [];
+  
+  Object.keys(localDeals).forEach(brand => {
+    // Check if the query matches the brand name OR specific product descriptions
+    localDeals[brand].forEach(deal => {
+      const matchesBrand = brand.toLowerCase().includes(cleanQuery);
+      const matchesProduct = deal.desc.toLowerCase().includes(cleanQuery) || 
+                             deal.title.toLowerCase().includes(cleanQuery);
+      
+      if (matchesBrand || matchesProduct) {
+        results.push({ ...deal, store: brand });
+      }
+    });
+  });
+
+  return results;
 }
