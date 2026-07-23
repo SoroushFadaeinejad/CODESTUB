@@ -1,61 +1,179 @@
-// Extended search function handling products + brands
-async function fetchDealsForProductOrBrand(searchQuery) {
-  // 1. Guard check: return empty array if query is invalid or empty
-  if (!searchQuery || typeof searchQuery !== 'string') {
-    return [];
-  }
-
-  const cleanQuery = searchQuery.trim().toLowerCase();
-  if (!cleanQuery) return [];
-
-  // 2. If an API key is connected, attempt backend fetch
-  if (typeof COUPON_API_KEY !== 'undefined' && COUPON_API_KEY) {
-    try {
-      const endpoint = typeof COUPON_API_ENDPOINT !== 'undefined' ? COUPON_API_ENDPOINT : '';
-      const res = await fetch(`${endpoint}?query=${encodeURIComponent(cleanQuery)}`, {
-        headers: { 'Authorization': `Bearer ${COUPON_API_KEY}` }
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.coupons)) {
-          return data.coupons; // Live product-level deals
-        }
-      } else {
-        console.warn(`API error status: ${res.status}`);
-      }
-    } catch (err) {
-      console.warn("API request failed, falling back to local deals:", err);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deal Search</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background-color: #f9f9f9;
+      color: #333;
     }
-  }
+    .search-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0052a3;
+    }
+    .results {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .deal-card {
+      background: white;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid #e1e1e1;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .store-tag {
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #0066cc;
+      margin-bottom: 4px;
+    }
+    .deal-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0 0 6px 0;
+    }
+    .deal-desc {
+      font-size: 14px;
+      color: #666;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
 
-  // 3. Client-side matching logic (Safe local deal filtering)
-  const results = [];
+  <h2>Search Deals & Coupons</h2>
   
-  // Guard against missing localDeals object
-  if (typeof localDeals !== 'object' || !localDeals) {
-    console.warn("localDeals variable is missing or invalid.");
-    return results;
-  }
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search product or brand (e.g. Nike, shoes)...">
+    <button onclick="handleSearch()">Search</button>
+  </div>
 
-  Object.keys(localDeals).forEach(brand => {
-    const dealsList = localDeals[brand];
-    if (!Array.isArray(dealsList)) return;
+  <div id="resultsList" class="results"></div>
 
-    dealsList.forEach(deal => {
-      if (!deal) return;
+  <script>
+    // Configuration Variables (Leave empty or null to use local fallback)
+    const COUPON_API_KEY = null; 
+    const COUPON_API_ENDPOINT = "";
 
-      const matchesBrand = brand.toLowerCase().includes(cleanQuery);
-      
-      // Using optional chaining (?.) and fallback string ('') to prevent crashing on missing properties
-      const matchesDesc = (deal.desc || '').toLowerCase().includes(cleanQuery);
-      const matchesTitle = (deal.title || '').toLowerCase().includes(cleanQuery);
+    // Local Fallback Data
+    const localDeals = {
+      "Nike": [
+        { title: "20% off Running Shoes", desc: "Get 20% off all Pegasus and Infinity shoes." },
+        { title: "Free Shipping", desc: "Free delivery on orders over $50." }
+      ],
+      "Adidas": [
+        { title: "15% Student Discount", desc: "Valid on all full priced apparel and sneakers." }
+      ],
+      "Apple": [
+        { title: "$100 Gift Card with Mac", desc: "Back to school promo on MacBook Air and Pro." }
+      ]
+    };
 
-      if (matchesBrand || matchesDesc || matchesTitle) {
-        results.push({ ...deal, store: brand });
+    // Robust Search Function
+    async function fetchDealsForProductOrBrand(searchQuery) {
+      if (!searchQuery || typeof searchQuery !== 'string') return [];
+
+      const cleanQuery = searchQuery.trim().toLowerCase();
+      if (!cleanQuery) return [];
+
+      // 1. Attempt API fetch if key exists
+      if (typeof COUPON_API_KEY !== 'undefined' && COUPON_API_KEY) {
+        try {
+          const endpoint = typeof COUPON_API_ENDPOINT !== 'undefined' ? COUPON_API_ENDPOINT : '';
+          const res = await fetch(`${endpoint}?query=${encodeURIComponent(cleanQuery)}`, {
+            headers: { 'Authorization': `Bearer ${COUPON_API_KEY}` }
+          });
+          
+          if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data.coupons)) return data.coupons;
+          }
+        } catch (err) {
+          console.warn("API request failed, falling back to local deals:", err);
+        }
       }
-    });
-  });
 
-  return results;
-}
+      // 2. Client-side local matching fallback
+      const results = [];
+      if (typeof localDeals !== 'object' || !localDeals) return results;
+
+      Object.keys(localDeals).forEach(brand => {
+        const dealsList = localDeals[brand];
+        if (!Array.isArray(dealsList)) return;
+
+        dealsList.forEach(deal => {
+          if (!deal) return;
+
+          const matchesBrand = brand.toLowerCase().includes(cleanQuery);
+          const matchesDesc = (deal.desc || '').toLowerCase().includes(cleanQuery);
+          const matchesTitle = (deal.title || '').toLowerCase().includes(cleanQuery);
+
+          if (matchesBrand || matchesDesc || matchesTitle) {
+            results.push({ ...deal, store: brand });
+          }
+        });
+      });
+
+      return results;
+    }
+
+    // UI Handler function
+    async function handleSearch() {
+      const query = document.getElementById('searchInput').value;
+      const resultsContainer = document.getElementById('resultsList');
+      
+      resultsContainer.innerHTML = '<p>Searching...</p>';
+      
+      const deals = await fetchDealsForProductOrBrand(query);
+      
+      if (deals.length === 0) {
+        resultsContainer.innerHTML = '<p>No deals found.</p>';
+        return;
+      }
+
+      resultsContainer.innerHTML = deals.map(deal => `
+        <div class="deal-card">
+          <div class="store-tag">${deal.store || 'Deal'}</div>
+          <h3 class="deal-title">${deal.title || 'Untitled Deal'}</h3>
+          <p class="deal-desc">${deal.desc || 'No description available.'}</p>
+        </div>
+      `).join('');
+    }
+
+    // Allow pressing 'Enter' to search
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') handleSearch();
+    });
+  </script>
+
+</body>
+</html>
